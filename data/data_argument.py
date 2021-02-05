@@ -75,21 +75,21 @@ def _distort(image):
 
     if random.randrange(2):
 
-        #brightness distortion
+        # brightness distortion
         if random.randrange(2):
             _convert(image, beta=random.uniform(-32, 32))
 
-        #contrast distortion
+        # contrast distortion
         if random.randrange(2):
             _convert(image, alpha=random.uniform(0.5, 1.5))
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        #saturation distortion
+        # saturation distortion
         if random.randrange(2):
             _convert(image[:, :, 1], alpha=random.uniform(0.5, 1.5))
 
-        #hue distortion
+        # hue distortion
         if random.randrange(2):
             tmp = image[:, :, 0].astype(int) + random.randint(-18, 18)
             tmp %= 180
@@ -99,17 +99,17 @@ def _distort(image):
 
     else:
 
-        #brightness distortion
+        # brightness distortion
         if random.randrange(2):
             _convert(image, beta=random.uniform(-32, 32))
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        #saturation distortion
+        # saturation distortion
         if random.randrange(2):
             _convert(image[:, :, 1], alpha=random.uniform(0.5, 1.5))
 
-        #hue distortion
+        # hue distortion
         if random.randrange(2):
             tmp = image[:, :, 0].astype(int) + random.randint(-18, 18)
             tmp %= 180
@@ -117,7 +117,7 @@ def _distort(image):
 
         image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
 
-        #contrast distortion
+        # contrast distortion
         if random.randrange(2):
             _convert(image, alpha=random.uniform(0.5, 1.5))
 
@@ -191,9 +191,9 @@ class preproc(object):
         boxes = targets[:, :-1].copy()
         labels = targets[:, -1].copy()
 
-        #image_t = _distort(image)
-        #image_t, boxes_t = _expand(image_t, boxes, self.cfg['rgb_mean'], self.cfg['max_expand_ratio'])
-        #image_t, boxes_t, labels_t = _crop(image_t, boxes, labels, self.img_dim, self.rgb_means)
+        # image_t = _distort(image)
+        # image_t, boxes_t = _expand(image_t, boxes, self.cfg['rgb_mean'], self.cfg['max_expand_ratio'])
+        # image_t, boxes_t, labels_t = _crop(image_t, boxes, labels, self.img_dim, self.rgb_means)
         image_t, boxes_t, labels_t, pad_image_flag = _crop(image, boxes, labels, self.img_dim)
         image_t = _distort(image_t)
         image_t = _pad_to_square(image_t,self.rgb_means, pad_image_flag)

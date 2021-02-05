@@ -96,7 +96,7 @@ class VOCDetection(tf.data.Dataset):
         if self.preproc is not None:
             img, target = self.preproc(img, target)
 
-        return torch.from_numpy(img), target
+        return tf.convert_to_tensor(img), target
 
     def __len__(self):
         return len(self.ids)
