@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description='FaceBoxes Training')
 parser.add_argument('--training_dataset', default='./data/WIDER_FACE', help='Training dataset directory')
 parser.add_argument('-b', '--batch_size', default=32, type=int, help='Batch size for training')
 parser.add_argument('--num_workers', default=8, type=int, help='Number of workers used in dataloading')
-parser.add_argument('--ngpu', default=2, type=int, help='gpus')
+# parser.add_argument('--ngpu', default=2, type=int, help='gpus')
 parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float, help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--resume_net', default=None, help='resume net for retraining')
@@ -25,7 +25,7 @@ if not os.path.exists(args.save_folder):
 img_dim = 1024 # only 1024 is supported
 rgb_mean = (104, 117, 123) # bgr order
 num_classes = 2
-num_gpu = args.ngpu
+# num_gpu = args.ngpu
 num_workers = args.num_workers
 batch_size = args.batch_size
 momentum = args.momentum
