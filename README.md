@@ -1,13 +1,6 @@
 **FaceBoxes con TensorFlow**
 
 # Implementacion con TensorFlow y Keras del paper publicado "FaceBoxes: A CPU Real-time Face Detector with High Accuracy"
- 
-### Para el entrenamiento se utilizo el dataset "WINDER_FACE".
-
-Como ya hay una implementacion hecha del paper que utiliza Pytorch, este proyecto se basa en hacer una traduccion hacia TensorFlow, 
-buscando sus funciones equivalentes.
-
-El proyecto tiene principalmente dos archivos -> train.py y test.py.
 
 # Citation
 El paper utilizado para este proyecto
@@ -19,8 +12,19 @@ El paper utilizado para este proyecto
 }
 ~~~
 
-### Dificultades que surgieron 
-A la hora de correr el proyecto ya hecho en PyTorch surgieron varias dificultades:
+
+El paper publicado cuenta con dos implementaciones actualmente, la [original](https://github.com/sfzhang15/FaceBoxes) principalmente escrita en C++, y otra, 
+la cual se uso de base, escrita en [PyTorch](https://github.com/zisianw/FaceBoxes.PyTorch)
+
+### Training dataset "WINDER_FACE"
+Se utilizo el dataset [Winder Face](http://shuoyang1213.me/WIDERFACE/), el cual posee una licencia APACHE LICENSE, VERSION 2.0
+
+Una vez descargada, se deben ubicar las fotos en 
+
+$FaceBoxes_ROOT/data/WIDER_FACE/images
+
+
+### Dificultades que surgieron  a la hora de correr el proyecto ya hecho en PyTorch 
 
 - La implementacion fue hecha hace ya algunos años, por lo que utiliza:
     * Python 3.5
@@ -34,3 +38,5 @@ tiene solo una GPU, el codigo me daba error, por lo cual tuve que comentar ciert
 if num_gpu > 1 and gpu_train:
      net = torch.nn.DataParallel(net, device_ids=list(range(num_gpu)))
 ~~~
+
+
