@@ -21,7 +21,7 @@ Se utilizo el dataset [Winder Face](http://shuoyang1213.me/WIDERFACE/), el cual 
 
 Una vez descargada, se deben ubicar las fotos en 
 
-$FaceBoxes_ROOT/data/WIDER_FACE/images
+*$FaceBoxes_ROOT/data/WIDER_FACE/images*
 
 
 ### Dificultades que surgieron  a la hora de correr el proyecto ya hecho en PyTorch 
@@ -38,5 +38,7 @@ tiene solo una GPU, el codigo me daba error, por lo cual tuve que comentar ciert
 if num_gpu > 1 and gpu_train:
      net = torch.nn.DataParallel(net, device_ids=list(range(num_gpu)))
 ~~~
+
+### Dificultades que surgieron  a la hora de pasar a TensorFlow
 
 
