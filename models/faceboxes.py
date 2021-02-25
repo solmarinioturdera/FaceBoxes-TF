@@ -38,18 +38,18 @@ class CRelu(tf.Module):
 #
 #   def __init__(self):
 #     super(Inception, self).__init__()
-#     self.branch1x1 = Basicconv2d(128, 32, ksize=1, padding=0)
-#     self.branch1x1_2 = Basicconv2d(128, 32, ksize=1, padding=0)
-#     self.branch3x3_reduce = Basicconv2d(128, 24, ksize=1, padding=0)
-#     self.branch3x3 = Basicconv2d(24, 32, ksize=3, padding=1)
-#     self.branch3x3_reduce_2 = Basicconv2d(128, 24, ksize=1, padding=0)
-#     self.branch3x3_2 = Basicconv2d(24, 32, ksize=3, padding=1)
-#     self.branch3x3_3 = Basicconv2d(32, 32, ksize=3, padding=1)
+#     self.branch1x1 = Basicconv2d(128, 32, kernel_size=1, padding=0)
+#     self.branch1x1_2 = Basicconv2d(128, 32, kernel_size=1, padding=0)
+#     self.branch3x3_reduce = Basicconv2d(128, 24, kernel_size=1, padding=0)
+#     self.branch3x3 = Basicconv2d(24, 32, kernel_size=3, padding=1)
+#     self.branch3x3_reduce_2 = Basicconv2d(128, 24, kernel_size=1, padding=0)
+#     self.branch3x3_2 = Basicconv2d(24, 32, kernel_size=3, padding=1)
+#     self.branch3x3_3 = Basicconv2d(32, 32, kernel_size=3, padding=1)
 #
 #   def __call__(self, x):
 #     branch1x1 = self.branch1x1(x)
 #
-#     branch1x1_pool = tf.nn.avg_pool2d(x, ksize=3, stride=1, padding=1)
+#     branch1x1_pool = tf.nn.avg_pool2d(x, kernel_size=3, stride=1, padding=1)
 #     branch1x1_2 = self.branch1x1_2(branch1x1_pool)
 #
 #     branch3x3_reduce = self.branch3x3_reduce(x)
@@ -72,16 +72,16 @@ class FaceBoxes(tf.Module):
     self.size = size
 
     self.conv1 = CRelu(24, (7, 7), strides=4, padding='same')(3)
-  #   self.conv2 = CRelu(48, 64, ksize=5, stride=2, padding=2)
+  #   self.conv2 = CRelu(48, 64, kernel_size=5, stride=2, padding=2)
   #
   #   self.inception1 = Inception()
   #   self.inception2 = Inception()
   #   self.inception3 = Inception()
-  #   self.conv3_1 = Basicconv2d(128, 128, ksize=1, stride=1, padding=0)
-  #   self.conv3_2 = Basicconv2d(128, 256, ksize=3, stride=2, padding=1)
+  #   self.conv3_1 = Basicconv2d(128, 128, kernel_size=1, stride=1, padding=0)
+  #   self.conv3_2 = Basicconv2d(128, 256, kernel_size=3, stride=2, padding=1)
   #
-  #   self.conv4_1 = Basicconv2d(256, 128, ksize=1, stride=1, padding=0)
-  #   self.conv4_2 = Basicconv2d(128, 256, ksize=3, stride=2, padding=1)
+  #   self.conv4_1 = Basicconv2d(256, 128, kernel_size=1, stride=1, padding=0)
+  #   self.conv4_2 = Basicconv2d(128, 256, kernel_size=3, stride=2, padding=1)
   #
   #   self.loc, self.conf = self.multibox(self.num_classes)
   #
@@ -103,12 +103,12 @@ class FaceBoxes(tf.Module):
   # def multibox(self, num_classes):
   #   loc_layers = []
   #   conf_layers = []
-  #   loc_layers += [tf.nn.conv2d(128, 21 * 4, ksize=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(128, 21 * num_classes, ksize=3, padding=1)]
-  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, ksize=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, ksize=3, padding=1)]
-  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, ksize=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, ksize=3, padding=1)]
+  #   loc_layers += [tf.nn.conv2d(128, 21 * 4, kernel_size=3, padding=1)]
+  #   conf_layers += [tf.nn.conv2d(128, 21 * num_classes, kernel_size=3, padding=1)]
+  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
+  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
+  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
+  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
   #
   #   model = Sequential()
   #   model.add(*loc_layers)
