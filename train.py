@@ -51,10 +51,48 @@ print("Printing net...")
 print(net)
 
 
-# if __name__ == '__main__':
-#     # GPU settings
-#     gpus = tf.config.experimental.list_physical_devices('GPU')
-#     if gpus:
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu, True)
+if __name__ == '__main__':
+    # GPU settings
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
 
+# if args.resume_net is not None:
+#     print('Loading resume network...')
+#     state_dict = torch.load(args.resume_net)
+#     # create new OrderedDict that does not contain `module.`
+#     from collections import OrderedDict
+#     new_state_dict = OrderedDict()
+#     for k, v in state_dict.items():
+#         head = k[:7]
+#         if head == 'module.':
+#             name = k[7:] # remove `module.`
+#         else:
+#             name = k
+#         new_state_dict[name] = v
+#     net.load_state_dict(new_state_dict)
+
+cudnn.benchmark = True
+net = net.to(device)
+
+optimizer = optim.SGD(net.parameters(), lr=initial_lr, momentum=momentum, weight_decay=weight_decay)
+criterion = MultiBoxLoss(num_classes, 0.35, True, 0, True, 7, 0.35, False)
+
+priorbox = PriorBox(cfg, image_size=(img_dim, img_dim))
+ """" ---------------------------------------------------------------------------- """"
+# get the original_dataset
+train_dataset, valid_dataset, test_dataset, train_count, valid_count, test_count = generate_datasets()
+
+# create model
+model = get_model()
+
+# define loss and optimizer
+loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
+optimizer = tf.keras.optimizers.Adadelta()
+
+train_loss = tf.keras.metrics.Mean(name='train_loss')
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
+
+valid_loss = tf.keras.metrics.Mean(name='valid_loss')
+valid_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='valid_accuracy')

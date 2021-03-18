@@ -117,87 +117,102 @@ class FaceBoxes(tf.keras.Model):
     self.inception2 = Inception()
     self.inception3 = Inception()
 
-    self.conv3_1 = BasicConv2D(128, 128, kernel_size=1, stride=1, padding=0)
+    self.conv3_1 = BasicConv2D(filters=128,
+                               kernel_size=(1, 1),
+                               strides=1,
+                               padding="same")
 
+    self.conv3_2 = BasicConv2D(filters=128,
+                               kernel_size=(3, 3),
+                               strides=1,
+                               padding="same")
 
-  #   self.conv3_2 = BasicConv2D(128, 256, kernel_size=3, stride=2, padding=1)
-  #
-  #   self.conv4_1 = BasicConv2D(256, 128, kernel_size=1, stride=1, padding=0)
-  #   self.conv4_2 = BasicConv2D(128, 256, kernel_size=3, stride=2, padding=1)
-  #
-  #   self.loc, self.conf = self.multibox(self.num_classes)
-  #
-  #   # if self.phase == 'test':
-  #       # self.softmax = tf.nn.Softmax(dim=-1)
-  #
-  #   # if self.phase == 'train':
-  #   #     for m in self.modules():
-  #   #         if isinstance(m, tf.nn.conv2d):
-  #   #             if m.bias is not None:
-  #   #                 tf.nn.init.xavier_normal_(m.weight.data)
-  #   #                 m.bias.data.fill_(0.02)
-  #   #             else:
-  #   #                 m.weight.data.normal_(0, 0.01)
-  #   #         elif isinstance(m, tf.nn.BatchNorm2d):
-  #   #             m.weight.data.fill_(1)
-  #   #             m.bias.data.zero_()
-  #
-  # def multibox(self, num_classes):
-  #   loc_layers = []
-  #   conf_layers = []
-  #   loc_layers += [tf.nn.conv2d(128, 21 * 4, kernel_size=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(128, 21 * num_classes, kernel_size=3, padding=1)]
-  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
-  #   loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
-  #   conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
-  #
-  #   model = Sequential()
-  #   model.add(*loc_layers)
-  #   model.add(*conf_layers)
-  #
-  #   return model
-  #   # return tf.nn.Sequential(*loc_layers), tf.nn.Sequential(*conf_layers)
-  #
-  # def __call__(self, x):
-  #
-  #   detection_sources = list()
-  #   loc = list()
-  #   conf = list()
-  #
-  #   x = self.conv1(x)
-  #   max_pool_2d_1 = KL.MaxPool2D(pool_size=(3, 3), strides=2, padding=1)
-  #   x = max_pool_2d_1(x)
-  #   x = self.conv2(x)
-  #   max_pool_2d_2 = KL.MaxPool2D(pool_size=(3, 3), strides=2, padding=1)
-  #   x = max_pool_2d_2(x)
-  #   x = self.inception1(x)
-  #   x = self.inception2(x)
-  #   x = self.inception3(x)
-  #   detection_sources.append(x)
-  #
-  #   x = self.conv3_1(x)
-  #   x = self.conv3_2(x)
-  #   detection_sources.append(x)
-  #
-  #   x = self.conv4_1(x)
-  #   x = self.conv4_2(x)
-  #   detection_sources.append(x)
-  #
-  #   for (x, l, c) in zip(detection_sources, self.loc, self.conf):
-  #       loc.append(l(x).permute(0, 2, 3, 1).contiguous())
-  #       conf.append(c(x).permute(0, 2, 3, 1).contiguous())
-  #
-  #   loc = tf.concat([o.view(o.size(0), -1) for o in loc], 1)
-  #   conf = tf.concat([o.view(o.size(0), -1) for o in conf], 1)
-  #
-  #   if self.phase == "test":
-  #     output = (loc.view(loc.size(0), -1, 4),
-  #               self.softmax(conf.view(conf.size(0), -1, self.num_classes)))
-  #   else:
-  #     output = (loc.view(loc.size(0), -1, 4),
-  #               conf.view(conf.size(0), -1, self.num_classes))
-  #
-  #   return output
+    self.conv4_1 = BasicConv2D(filters=256,
+                               kernel_size=(1, 1),
+                               strides=1,
+                               padding="same")
+    self.conv4_2 = BasicConv2D(filters=128,
+                               kernel_size=(3, 3),
+                               strides=2,
+                               padding="same")
+
+    self.loc, self.conf = self.multibox(self.num_classes)
+
+    if self.phase == 'test':
+        self.softmax = tf.keras.layers.Softmax()
+
+    # if self.phase == 'train':
+    #     for m in self.modules():
+    #         if isinstance(m, tf.nn.conv2d):
+    #             if m.bias is not None:
+    #                 tf.nn.init.xavier_normal_(m.weight.data)
+    #                 m.bias.data.fill_(0.02)
+    #             else:
+    #                 m.weight.data.normal_(0, 0.01)
+    #         elif isinstance(m, tf.nn.BatchNorm2d):
+    #             m.weight.data.fill_(1)
+    #             m.bias.data.zero_()
+
+  def multibox(self, num_classes):
+    loc_layers = []
+    conf_layers = []
+    loc_layers += [tf.nn.conv2d(128, 21 * 4, kernel_size=3, padding=1)]
+    conf_layers += [tf.nn.conv2d(128, 21 * num_classes, kernel_size=3, padding=1)]
+    loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
+    conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
+    loc_layers += [tf.nn.conv2d(256, 1 * 4, kernel_size=3, padding=1)]
+    conf_layers += [tf.nn.conv2d(256, 1 * num_classes, kernel_size=3, padding=1)]
+
+    model = Sequential()
+    model.add(*loc_layers)
+    model.add(*conf_layers)
+
+    return model
+    # return tf.nn.Sequential(*loc_layers), tf.nn.Sequential(*conf_layers)
+
+  def __call__(self, x):
+
+    detection_sources = list()
+    loc = list()
+    conf = list()
+
+    x = self.conv1(x)
+    max_pool_2d_1 = tf.keras.layers.AvgPool2D(pool_size=(3, 3),
+                                              strides=2,
+                                              padding="valid")
+    x = max_pool_2d_1(x)
+    x = self.conv2(x)
+    max_pool_2d_2 = tf.keras.layers.AvgPool2D(pool_size=(3, 3),
+                                              strides=2,
+                                              padding="valid")
+    x = max_pool_2d_2(x)
+    x = self.inception1(x)
+    x = self.inception2(x)
+    x = self.inception3(x)
+    detection_sources.append(x)
+
+    x = self.conv3_2(x)
+    x = self.conv3_1(x)
+    detection_sources.append(x)
+
+    x = self.conv4_1(x)
+    x = self.conv4_2(x)
+    detection_sources.append(x)
+
+    for (x, l, c) in zip(detection_sources, self.loc, self.conf):
+        loc.append(l(x).permute(0, 2, 3, 1).contiguous())
+        conf.append(c(x).permute(0, 2, 3, 1).contiguous())
+
+    loc = tf.keras.layers.concatenate([o.view(o.size(0), -1) for o in loc], axis=1)
+    conf = tf.keras.layers.concatenate([o.view(o.size(0), -1) for o in conf], axis=1)
+
+    if self.phase == "test":
+      output = (loc.view(loc.size(0), -1, 4),
+                self.softmax(conf.view(conf.size(0), -1, self.num_classes)))
+    else:
+      output = (loc.view(loc.size(0), -1, 4),
+                conf.view(conf.size(0), -1, self.num_classes))
+
+    return output
 
 
