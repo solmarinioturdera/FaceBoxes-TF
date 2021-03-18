@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tf.keras.layers as KL
+import tf.keras.layers
 import numpy as np
 
 
@@ -11,8 +11,8 @@ def point_form(boxes):
     Return:
         boxes: (tensor) Converted xmin, ymin, xmax, ymax form of boxes.
     """
-    return tf.concat((boxes[:, :2] - boxes[:, 2:]/2,     # xmin, ymin
-                     boxes[:, :2] + boxes[:, 2:]/2), 1)  # xmax, ymax
+    return tf.keras.layers.concatenate((boxes[:, :2] - boxes[:, 2:]/2,     # xmin, ymin
+                                        boxes[:, :2] + boxes[:, 2:]/2), 1)  # xmax, ymax
 
 
 def center_size(boxes):
@@ -23,8 +23,8 @@ def center_size(boxes):
     Return:
         boxes: (tensor) Converted xmin, ymin, xmax, ymax form of boxes.
     """
-    return tf.concat((boxes[:, 2:] + boxes[:, :2])/2,  # cx, cy
-                     boxes[:, 2:] - boxes[:, :2], 1)  # w, h
+    return tf.keras.layers.concatenate((boxes[:, 2:] + boxes[:, :2])/2,  # cx, cy
+                                        boxes[:, 2:] - boxes[:, :2], 1)  # w, h
 
 
 def intersect(box_a, box_b):
@@ -41,9 +41,9 @@ def intersect(box_a, box_b):
     A = box_a.size(0)
     B = box_b.size(0)
     max_xy = KL.Minimum()([box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
-                                        box_b[:, 2:].unsqueeze(0).expand(A, B, 2)])
+                           box_b[:, 2:].unsqueeze(0).expand(A, B, 2)])
     min_xy = KL.Maximum()([box_a[:, :2].unsqueeze(1).expand(A, B, 2),
-                                        box_b[:, :2].unsqueeze(0).expand(A, B, 2)])
+                           box_b[:, :2].unsqueeze(0).expand(A, B, 2)])
     inter = tf.clip_by_value((max_xy - min_xy), min=0)
     return inter[:, :, 0] * inter[:, :, 1]
 
@@ -169,7 +169,7 @@ def encode(matched, priors, variances):
     g_wh = (matched[:, 2:] - matched[:, :2]) / priors[:, 2:]
     g_wh = tf.math.log(g_wh) / variances[1]
     # return target for smooth_l1_loss
-    return tf.concat([g_cxcy, g_wh], 1)  # [num_priors,4]
+    return tf.keras.layers.concatenate([g_cxcy, g_wh], 1)  # [num_priors,4]
 
 
 # Adapted from https://github.com/Hakuyume/chainer-ssd
@@ -186,7 +186,7 @@ def decode(loc, priors, variances):
         decoded bounding box predictions
     """
 
-    boxes = tf.concat([
+    boxes = tf.keras.layers.concatenate([
         priors[:, :2] + loc[:, :2] * variances[0] * priors[:, 2:],
         priors[:, 2:] * tf.math.exp(loc[:, 2:] * variances[1])], 1)
     boxes[:, :2] -= boxes[:, 2:] / 2

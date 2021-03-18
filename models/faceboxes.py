@@ -1,69 +1,100 @@
 import tensorflow as tf
-import tensorflow.keras.layers as KL
+import tf.keras.layers
 from tensorflow.keras import Sequential
 
+class BasicConv2D(tf.keras.layers.Layer):
+    def __init__(self, filters, kernel_size, strides, padding):
+        super(BasicConv2D, self).__init__()
+        self.conv = tf.keras.layers.Conv2D(filters=filters,
+                                           kernel_size=kernel_size,
+                                           strides=strides,
+                                           padding=padding)
+        self.bn = tf.keras.layers.BatchNormalization()
+        self.relu = tf.keras.layers.ReLU()
 
-class Basicconv2d(tf.Module):
+    def call(self, inputs, **kwargs):
+        output = self.conv(inputs)
+        output = self.bn(output)
+        output = self.relu(output)
 
-    def __init__(self, in_channels, out_channels, **kwargs):
-        super(Basicconv2d, self).__init__()
-        # self.conv = tf.nn.conv2d(in_channels, out_channels, **kwargs) #bias=False
-
-        self.conv = KL.Conv2D(filters=out_channels, **kwargs)(in_channels)
-        self.bn = KL.BatchNormalization(out_channels, epsilon=1e-5)
-
-    def __call__(self, x):
-        x = self.conv(x)
-        x = self.bn(x)
-        return tf.nn.relu(x)
+        return output
 
 
-class CRelu(tf.Module):
+class CRelu(tf.keras.layers.Layer):
 
-  def __init__(self, in_channels, out_channels, **kwargs):
-    super(CRelu, self).__init__()
-    self.conv = KL.Conv2D(filters=out_channels, **kwargs)(in_channels)
-    # self.conv = tf.nn.conv2d(in_channels, out_channels, **kwargs)
-    self.bn = KL.BatchNormalization(out_channels, eps=1e-5)
+  def __init__(self, filters, kernel_size, strides, padding):
+        super(CRelu, self).__init__()
+        self.conv = tf.keras.layers.Conv2D(filters=filters,
+                                           kernel_size=kernel_size,
+                                           strides=strides,
+                                           padding=padding)
+        self.bn = tf.keras.layers.BatchNormalization()
+        self.relu = tf.keras.layers.ReLU()
+
+  def call(self, inputs, **kwargs):
+        output = self.conv(inputs)
+        output = self.bn(output)
+        output = tf.keras.layers.concatenate([x, -x], axis=1)
+        output = self.relu(output)
+
+        return output
+
+
+class Inception(tf.Module):
+
+  def __init__(self):
+    super(Inception, self).__init__()
+    self.branch1x1 = BasicConv2D(filters=128,
+                                 kernel_size=(1, 1),
+                                 strides=1,
+                                 padding="same")
+    self.branch1x1_2 = BasicConv2D(filters=128,
+                                   kernel_size=(1, 1),
+                                   strides=1,
+                                   padding="same")
+
+    self.branch3x3_reduce = BasicConv2D(filters=128,
+                                        kernel_size=(1, 1),
+                                        strides=1,
+                                        padding="same")
+    self.branch3x3 = BasicConv2D(filters=24,
+                                 kernel_size=(3, 3),
+                                 strides=1,
+                                 padding="same")
+    self.branch3x3_reduce_2 = BasicConv2D(filters=128,
+                                          kernel_size=(1, 1),
+                                          strides=1,
+                                          padding="same")
+    self.branch3x3_2 = BasicConv2D(filters=24,
+                                   kernel_size=(3, 3),
+                                   strides=1,
+                                   padding="same")
+    self.branch3x3_3 = BasicConv2D(filters=32,
+                                   kernel_size=(3, 3),
+                                   strides=1,
+                                   padding="same")
 
   def __call__(self, x):
-    x = self.conv(x)
-    x = self.bn(x)
-    x = tf.concat([x, -x], 1)
-    x = tf.nn.relu(x)
-    return x
+    branch1x1 = self.branch1x1(x)
+    branch1x1_pool = tf.keras.layers.AvgPool2D(pool_size=(3, 3),
+                                             strides=1,
+                                             padding="same")
+    branch1x1_2 = self.branch1x1_2(branch1x1_pool)
+
+    branch3x3_reduce = self.branch3x3_reduce(x)
+    branch3x3 = self.branch3x3(branch3x3_reduce)
+
+    branch3x3_reduce_2 = self.branch3x3_reduce_2(x)
+    branch3x3_2 = self.branch3x3_2(branch3x3_reduce_2)
+
+    branch3x3_3 = self.branch3x3_3(branch3x3_2)
+
+    outputs = tf.keras.layers.concatenate([branch1x1, branch1x1_2, branch3x3, branch3x3_3], axis=-1)
+
+    return outputs
 
 
-# class Inception(tf.Module):
-#
-#   def __init__(self):
-#     super(Inception, self).__init__()
-#     self.branch1x1 = Basicconv2d(128, 32, kernel_size=1, padding=0)
-#     self.branch1x1_2 = Basicconv2d(128, 32, kernel_size=1, padding=0)
-#     self.branch3x3_reduce = Basicconv2d(128, 24, kernel_size=1, padding=0)
-#     self.branch3x3 = Basicconv2d(24, 32, kernel_size=3, padding=1)
-#     self.branch3x3_reduce_2 = Basicconv2d(128, 24, kernel_size=1, padding=0)
-#     self.branch3x3_2 = Basicconv2d(24, 32, kernel_size=3, padding=1)
-#     self.branch3x3_3 = Basicconv2d(32, 32, kernel_size=3, padding=1)
-#
-#   def __call__(self, x):
-#     branch1x1 = self.branch1x1(x)
-#
-#     branch1x1_pool = tf.nn.avg_pool2d(x, kernel_size=3, stride=1, padding=1)
-#     branch1x1_2 = self.branch1x1_2(branch1x1_pool)
-#
-#     branch3x3_reduce = self.branch3x3_reduce(x)
-#     branch3x3 = self.branch3x3(branch3x3_reduce)
-#
-#     branch3x3_reduce_2 = self.branch3x3_reduce_2(x)
-#     branch3x3_2 = self.branch3x3_2(branch3x3_reduce_2)
-#     branch3x3_3 = self.branch3x3_3(branch3x3_2)
-#
-#     outputs = [branch1x1, branch1x1_2, branch3x3, branch3x3_3]
-#     return tf.concat(outputs, 1)
-
-
-class FaceBoxes(tf.Module):
+class FaceBoxes(tf.keras.Model):
 
   def __init__(self, phase, size, num_classes):
     super(FaceBoxes, self).__init__()
@@ -71,17 +102,28 @@ class FaceBoxes(tf.Module):
     self.num_classes = num_classes
     self.size = size
 
-    self.conv1 = CRelu(24, (7, 7), strides=4, padding='same')(3)
-  #   self.conv2 = CRelu(48, 64, kernel_size=5, stride=2, padding=2)
+    # self.conv1 = CRelu(3, 24, kernel_size=7, strides=4, padding='same')
+    #   self.conv2 = CRelu(48, 64, kernel_size=5, stride=2, padding=2)
+    self.conv1 = tf.keras.Sequential([CRelu(filters=24,
+                                            kernel_size=(7, 7),
+                                            strides=4,
+                                            padding="same")])
+    self.conv2 = tf.keras.Sequential([CRelu(filters=48,
+                                            kernel_size=(5, 5),
+                                            strides=2,
+                                            padding="same")])
+
+    self.inception1 = Inception()
+    self.inception2 = Inception()
+    self.inception3 = Inception()
+
+    self.conv3_1 = BasicConv2D(128, 128, kernel_size=1, stride=1, padding=0)
+
+
+  #   self.conv3_2 = BasicConv2D(128, 256, kernel_size=3, stride=2, padding=1)
   #
-  #   self.inception1 = Inception()
-  #   self.inception2 = Inception()
-  #   self.inception3 = Inception()
-  #   self.conv3_1 = Basicconv2d(128, 128, kernel_size=1, stride=1, padding=0)
-  #   self.conv3_2 = Basicconv2d(128, 256, kernel_size=3, stride=2, padding=1)
-  #
-  #   self.conv4_1 = Basicconv2d(256, 128, kernel_size=1, stride=1, padding=0)
-  #   self.conv4_2 = Basicconv2d(128, 256, kernel_size=3, stride=2, padding=1)
+  #   self.conv4_1 = BasicConv2D(256, 128, kernel_size=1, stride=1, padding=0)
+  #   self.conv4_2 = BasicConv2D(128, 256, kernel_size=3, stride=2, padding=1)
   #
   #   self.loc, self.conf = self.multibox(self.num_classes)
   #

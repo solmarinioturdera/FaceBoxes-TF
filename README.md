@@ -18,9 +18,11 @@ la cual se uso de base, escrita en [PyTorch](https://github.com/zisianw/FaceBoxe
 
 ### Training dataset "WINDER_FACE"
 Se utilizo el dataset [Winder Face](http://shuoyang1213.me/WIDERFACE/), el cual posee una licencia APACHE LICENSE, VERSION 2.0
+Este tipo de licencia "permite al usuario del software de la libertad de usar el software para cualquier propósito, para distribuirlo, modificarlo y 
+distribuir versiones modificadas del software, bajo los términos de la licencia, sin preocuparse de las regalías."
 
-Una vez descargada, se deben ubicar las fotos en 
 
+Una vez descargada, se deben ubicar las fotos en
 *$FaceBoxes_ROOT/data/WIDER_FACE/images*
 
 
@@ -39,6 +41,16 @@ if num_gpu > 1 and gpu_train:
      net = torch.nn.DataParallel(net, device_ids=list(range(num_gpu)))
 ~~~
 
+ - Mi notebook cuenta con una GPU NVIDIA® GeForce® MX150 con 2GB de memoria, los cuales no fueron suficientes
+para poder entrenar la red neuronal.
+   
+ - Necesite instalar Anaconda para que funcionara, ya que, en el entorno directo de Python no lo hacia, porque hay que 
+   instalar versiones mas viejas de los paquetes, ya que el programa fue hecho hace unos años
+   
+
 ### Dificultades que surgieron  a la hora de pasar a TensorFlow
+
+- La mayor dificultad esta en pasar de PyTorch a TensorFlow, si bien, ambas librerias tienen gran documentacion, hay que 
+leer mucho para ir pasando de una a otra
 
 
