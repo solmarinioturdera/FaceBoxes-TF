@@ -1,8 +1,7 @@
 import os
 import os.path
 import sys
-# import torch
-# import torch.utils.data as data
+import tensorflow as tf
 import cv2
 import numpy as np
 if sys.version_info[0] == 2:
@@ -95,7 +94,7 @@ class VOCDetection(data.Dataset):
         if self.preproc is not None:
             img, target = self.preproc(img, target)
 
-        return torch.from_numpy(img), target
+        return tf.convert_to_tensor(img), target
 
     def __len__(self):
         return len(self.ids)
@@ -117,10 +116,10 @@ def detection_collate(batch):
     imgs = []
     for _, sample in enumerate(batch):
         for _, tup in enumerate(sample):
-            if torch.is_tensor(tup):
+            if tf.is_tensor(tup):
                 imgs.append(tup)
             elif isinstance(tup, type(np.empty(0))):
-                annos = torch.from_numpy(tup).float()
+                annos = tf.convert_to_tensor(tup).float()
                 targets.append(annos)
 
-    return torch.stack(imgs, 0), targets
+    return tf.stack(imgs, 0), targets

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tf.keras.layers
 import numpy as np
-
+import torch
 
 def point_form(boxes):
     """ Convert prior_boxes to (xmin, ymin, xmax, ymax)
@@ -40,10 +40,10 @@ def intersect(box_a, box_b):
     """
     A = box_a.size(0)
     B = box_b.size(0)
-    max_xy = KL.Minimum()([box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
-                           box_b[:, 2:].unsqueeze(0).expand(A, B, 2)])
-    min_xy = KL.Maximum()([box_a[:, :2].unsqueeze(1).expand(A, B, 2),
-                           box_b[:, :2].unsqueeze(0).expand(A, B, 2)])
+    max_xy = tf.keras.layers.Minimum()([box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
+                                        box_b[:, 2:].unsqueeze(0).expand(A, B, 2)])
+    min_xy = tf.keras.layers.Maximum()([box_a[:, :2].unsqueeze(1).expand(A, B, 2),
+                                        box_b[:, :2].unsqueeze(0).expand(A, B, 2)])
     inter = tf.clip_by_value((max_xy - min_xy), min=0)
     return inter[:, :, 0] * inter[:, :, 1]
 
@@ -202,7 +202,7 @@ def log_sum_exp(x):
         x (Variable(tensor)): conf_preds from conf layers
     """
     x_max = x.data.max()
-    return tf.math.log(torch.sum(tf.math.exp(x-x_max), 1, keepdim=True)) + x_max
+    return tf.math.log(tf.keras.backend.sum(tf.math.exp(x-x_max), 1, keepdim=True)) + x_max
 
 
 # Original author: Francisco Massa:

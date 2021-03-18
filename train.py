@@ -73,20 +73,14 @@ if __name__ == '__main__':
 #         new_state_dict[name] = v
 #     net.load_state_dict(new_state_dict)
 
-cudnn.benchmark = True
-net = net.to(device)
-
-optimizer = optim.SGD(net.parameters(), lr=initial_lr, momentum=momentum, weight_decay=weight_decay)
-criterion = MultiBoxLoss(num_classes, 0.35, True, 0, True, 7, 0.35, False)
-
-priorbox = PriorBox(cfg, image_size=(img_dim, img_dim))
+# cudnn.benchmark = True
+# net = net.to(device)
+#
+# optimizer = optim.SGD(net.parameters(), lr=initial_lr, momentum=momentum, weight_decay=weight_decay)
+# criterion = MultiBoxLoss(num_classes, 0.35, True, 0, True, 7, 0.35, False)
+#
+# priorbox = PriorBox(cfg, image_size=(img_dim, img_dim))
  """" ---------------------------------------------------------------------------- """"
-# get the original_dataset
-train_dataset, valid_dataset, test_dataset, train_count, valid_count, test_count = generate_datasets()
-
-# create model
-model = get_model()
-
 # define loss and optimizer
 loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
 optimizer = tf.keras.optimizers.Adadelta()
@@ -96,3 +90,64 @@ train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy
 
 valid_loss = tf.keras.metrics.Mean(name='valid_loss')
 valid_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='valid_accuracy')
+"""" ---------------------------------------------------------------------------- """"
+
+priorbox = PriorBox(cfg, image_size=(img_dim, img_dim))
+with torch.no_grad():
+    priors = priorbox.forward()
+    priors = priors.to(device)
+
+def train():
+    net.train()
+    epoch = 0 + args.resume_epoch
+    print('Loading Dataset...')
+
+    dataset = VOCDetection(training_dataset, preproc(img_dim, rgb_mean), AnnotationTransform())
+
+    epoch_size = math.ceil(len(dataset) / batch_size)
+    max_iter = max_epoch * epoch_size
+
+    stepvalues = (200 * epoch_size, 250 * epoch_size)
+    step_index = 0
+
+    if args.resume_epoch > 0:
+        start_iter = args.resume_epoch * epoch_size
+    else:
+        start_iter = 0
+
+    for iteration in range(start_iter, max_iter):
+        if iteration % epoch_size == 0:
+            # create batch iterator
+            batch_iterator = iter(data.DataLoader(dataset, batch_size, shuffle=True, num_workers=num_workers, collate_fn=detection_collate))
+            if (epoch % 10 == 0 and epoch > 0) or (epoch % 5 == 0 and epoch > 200):
+                torch.save(net.state_dict(), save_folder + 'FaceBoxes_epoch_' + str(epoch) + '.pth')
+            epoch += 1
+
+        load_t0 = time.time()
+        if iteration in stepvalues:
+            step_index += 1
+        lr = adjust_learning_rate(optimizer, gamma, epoch, step_index, iteration, epoch_size)
+
+        # load train data
+        images, targets = next(batch_iterator)
+        images = images.to(device)
+        targets = [anno.to(device) for anno in targets]
+
+        # forward
+        out = net(images)
+
+        # backprop
+        optimizer.zero_grad()
+        loss_l, loss_c = criterion(out, priors, targets)
+        loss = cfg['loc_weight'] * loss_l + loss_c
+        loss.backward()
+        optimizer.step()
+        load_t1 = time.time()
+        batch_time = load_t1 - load_t0
+        eta = int(batch_time * (max_iter - iteration))
+        print('Epoch:{}/{} || Epochiter: {}/{} || Iter: {}/{} || L: {:.4f} C: {:.4f} || LR: {:.8f} || Batchtime: {:.4f} s || ETA: {}'.format(epoch, max_epoch, (iteration % epoch_size) + 1, epoch_size, iteration + 1, max_iter, loss_l.item(), loss_c.item(), lr, batch_time, str(datetime.timedelta(seconds=eta))))
+
+    torch.save(net.state_dict(), save_folder + 'Final_FaceBoxes.pth')
+
+    # model.save_weights(filepath=config.save_model_dir, save_format='tf')
+
